@@ -23,7 +23,7 @@ export default function Home() {
           </p>
           <p className="text-[17px] md:text-[18px] leading-relaxed">
             I create real, authentic social‑media content for Bay Area brands
-            and businesses. No stock footage, no fake energy — just your story,
+            and businesses. On-site footage, no fake energy — just your story,
             your people, and your presence brought to life through short,
             engaging videos and visuals.
           </p>
