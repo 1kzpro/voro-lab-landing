@@ -60,10 +60,12 @@ export default function Home() {
             Let&apos;s create something real together.
           </p>
           <a
-            href="tel:+13343299784"
+            href="https://instagram.com/voro.lab"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-block text-[20px] md:text-[22px] font-bold text-soft-white hover:text-pure-white transition-colors duration-200"
           >
-            (334) 329‑9784
+            @voro.lab
           </a>
         </FadeIn>
       </section>
