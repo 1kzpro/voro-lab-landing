@@ -1,0 +1,229 @@
+name: Production Deployment
+
+on:
+  push:
+    branches:
+      - production
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - '.editorconfig'
+
+permissions:
+  contents: read
+  deployments: write
+
+env:
+  NODE_ENV: production
+  DEPLOY_PATH: /opt/voro-lab-landing/production
+  DEPLOY_USER: ${{ secrets.USERNAME }}
+  DEPLOY_HOST: ${{ secrets.HOST }}
+  APP_NAME: voro-lab-landing
+  DOMAIN: vorolab.co
+  PACKAGE_MANAGER: pnpm
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: voro-lab-landing-production  # Activates the environment-specific secrets
+
+    steps:
+      - name: Generate Deployment ID
+        id: deployment-id
+        run: echo "deployment_id=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        if: env.PACKAGE_MANAGER == 'pnpm'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      # Cache dependencies for faster builds
+      - name: Get pnpm store directory
+        if: env.PACKAGE_MANAGER == 'pnpm'
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        if: env.PACKAGE_MANAGER == 'pnpm'
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml', '**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      # Cache Next.js build cache
+      - name: Cache Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+          key: ${{ runner.os }}-nextjs-cache-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-cache-
+
+      - name: Install Dependencies
+        run: |
+          if [ "$PACKAGE_MANAGER" == "pnpm" ]; then
+            pnpm install --frozen-lockfile
+          else
+            npm ci
+          fi
+
+      - name: Create .env file
+        run: |
+          # Create a .env file with environment configuration
+          echo "Creating .env file for production environment..."
+          
+          # Base configuration
+          echo "NODE_ENV=production" > .env
+          echo "NEXT_PUBLIC_ENVIRONMENT=voro-lab-landing-production" >> .env
+          
+          echo "API_URL=${{ secrets.API_URL }}" >> .env
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
+          
+          
+          # Print confirmation (redact values for security)
+          echo "Created .env file with these variables:"
+          grep -v "^#" .env | sed 's/=.*/=***/g'
+
+      - name: Build Application
+        run: |
+          if [ "$PACKAGE_MANAGER" == "pnpm" ]; then
+            pnpm build
+          else
+            npm run build
+          fi
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+
+      - name: Prepare Deployment Directory
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: DEPLOY_PATH
+          script: |
+            mkdir -p $DEPLOY_PATH/releases/${{ steps.deployment-id.outputs.deployment_id }}
+            mkdir -p $DEPLOY_PATH/shared
+
+      - name: Create Deployment Package
+        run: |
+          # Create a minimal deployment package with only necessary files
+          mkdir -p deploy_package
+          
+          # Copy essential files
+          cp -r package.json pnpm-lock.yaml* package-lock.json* deploy_package/ 2>/dev/null || true
+          cp -r .env deploy_package/.env.build 2>/dev/null || true
+          cp -r public deploy_package/ 2>/dev/null || true
+          cp -r scripts deploy_package/ 2>/dev/null || true
+          cp -r .easyd deploy_package/ 2>/dev/null || true
+          cp -r next.config.ts deploy_package/ 2>/dev/null || true
+          
+          # Copy the built Next.js application
+          cp -r .next deploy_package/
+          
+          # Create a marker file to indicate this is a pre-built deployment
+          touch deploy_package/PREBUILT
+
+      - name: Transfer Files
+        run: |
+          rsync -avz -e "ssh -i ~/.ssh/deploy_key" \
+            deploy_package/ \
+            $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/releases/${{ steps.deployment-id.outputs.deployment_id }}/
+
+      - name: Validate Deployment Environment
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: DEPLOY_PATH
+          script: |
+            # Load environment profile
+            export SHELL=/bin/bash
+            source ~/.bash_profile 2>/dev/null || source ~/.profile 2>/dev/null || true
+            
+            # Validate the server environment before proceeding with deployment
+            cd $DEPLOY_PATH/releases/${{ steps.deployment-id.outputs.deployment_id }}
+            chmod +x ./scripts/validate-environment.sh
+            ./scripts/validate-environment.sh
+
+      - name: Run Deployment
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: DEPLOY_PATH
+          script: |
+            # Load environment profile
+            export SHELL=/bin/bash
+            source ~/.bash_profile 2>/dev/null || source ~/.profile 2>/dev/null || true
+            
+            # Run deployment script
+            cd $DEPLOY_PATH/releases/${{ steps.deployment-id.outputs.deployment_id }}
+            chmod +x ./scripts/*.sh
+            DEPLOY_PATH=$DEPLOY_PATH ./scripts/run-deploy.sh ${{ steps.deployment-id.outputs.deployment_id }} .easyd/configs/voro-lab-landing-production.config.json
+
+      - name: Notify Deployment Status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "Deployment successful to https://${{ env.DOMAIN }}"
+          else
+            echo "Deployment failed, check server logs for details"
+          fi
+
+      - name: Create GitHub Deployment
+        uses: chrnorm/deployment-action@v2
+        id: deployment
+        if: success()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: voro-lab-landing-production
+          environment-url: https://${{ env.DOMAIN }}
+
+      - name: Update Deployment Status (Success)
+        uses: chrnorm/deployment-status@v2
+        if: success()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          state: 'success'
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+
+      - name: Update Deployment Status (Failure)
+        uses: chrnorm/deployment-status@v2
+        if: failure()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          state: 'failure'
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}

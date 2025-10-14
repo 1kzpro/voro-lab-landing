@@ -1,0 +1,25 @@
+{
+  "environment": "production",
+  "appName": "voro-lab-landing",
+  "primaryDomain": "vorolab.co",
+  "domains": [],
+  "includeWWW": true,
+  "deployPath": "/opt/voro-lab-landing/production",
+  "nginxConfig": "/etc/nginx/conf.d/voro-lab-landing-production.conf",
+  "activePortFile": "/etc/nginx/conf.d/voro-lab-landing-production-port.txt",
+  "publicDir": "/opt/voro-lab-landing/production/current/public",
+  "port1": 3760,
+  "port2": 3761,
+  "nodeVersion": "20",
+  "packageManager": "pnpm",
+  "packageManagerVersion": "10",
+  "branch": "production",
+  "pm2Config": {
+    "maxMemoryRestart": "400M"
+  },
+  "secrets": {
+    "username": "USERNAME",
+    "host": "HOST",
+    "sshPrivateKey": "SSH_PRIVATE_KEY"
+  }
+}
