@@ -1,4 +1,5 @@
 import { FadeIn } from "@/components/FadeIn";
+import { Footer } from "@/components/Footer";
 import Link from "next/link";
 
 export default function Offer() {
@@ -6,7 +7,7 @@ export default function Offer() {
     <main className="min-h-screen">
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center min-h-screen px-6 md:px-16 lg:px-24">
-        <FadeIn className="text-center">
+        <FadeIn className="text-center" immediate>
           <h1 className="font-sora font-bold text-[clamp(36px,6vw,72px)] tracking-tight mb-3 md:mb-4">
             NO-COST SOCIAL MEDIA
           </h1>
@@ -106,10 +107,18 @@ export default function Offer() {
       <section className="max-w-[880px] mx-auto px-6 md:px-16 lg:px-24 py-16 md:py-24 text-center">
         <FadeIn delay={0.6}>
           <p className="text-[17px] md:text-[18px] leading-relaxed mb-8">
-            If that&apos;s you, message me your business name and location —
-            let&apos;s collaborate.
+            If that&apos;s you, let&apos;s collaborate.
           </p>
-          <div className="space-y-4">
+          <div className="space-y-6">
+            <div>
+              <Link
+                href="/inquiry"
+                className="inline-block bg-soft-white text-soft-black px-8 py-4 rounded-lg text-[18px] md:text-[20px] font-bold hover:bg-pure-white transition-colors duration-200"
+              >
+                Send Inquiry
+              </Link>
+            </div>
+            <div className="text-sm opacity-70">or connect with me</div>
             <a
               href="https://instagram.com/voro.lab"
               target="_blank"
@@ -118,7 +127,6 @@ export default function Offer() {
             >
               @voro.lab
             </a>
-            <div className="text-sm opacity-70">or email: hello@vorolab.co</div>
           </div>
         </FadeIn>
       </section>
@@ -136,13 +144,7 @@ export default function Offer() {
       </section>
 
       {/* Footer */}
-      <footer className="max-w-[880px] mx-auto px-6 md:px-16 lg:px-24 py-8 md:py-12">
-        <FadeIn delay={0.8}>
-          <small className="block text-center text-sm opacity-50">
-            © 2025 Voro Lab — Bay Area. Real content. Real presence.
-          </small>
-        </FadeIn>
-      </footer>
+      <Footer navDelay={0.8} copyrightDelay={0.9} />
     </main>
   );
 }

@@ -1,11 +1,12 @@
 import { FadeIn } from "@/components/FadeIn";
+import { Footer } from "@/components/Footer";
 
 export default function Home() {
   return (
     <main className="min-h-screen">
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center min-h-screen px-6 md:px-16 lg:px-24">
-        <FadeIn className="text-center">
+        <FadeIn className="text-center" immediate>
           <h1 className="font-sora font-bold text-[clamp(36px,6vw,72px)] tracking-tight mb-3 md:mb-4">
             VORO LAB
           </h1>
@@ -68,6 +69,14 @@ export default function Home() {
                 Get No-Cost Social Media Content
               </a>
             </div>
+            <div>
+              <a
+                href="/inquiry"
+                className="inline-block border-2 border-soft-white text-soft-white px-8 py-4 rounded-lg text-[18px] md:text-[20px] font-bold hover:bg-soft-white hover:text-soft-black transition-colors duration-200"
+              >
+                Send Inquiry
+              </a>
+            </div>
             <div className="text-sm opacity-70">or connect with me</div>
             <a
               href="https://instagram.com/voro.lab"
@@ -82,13 +91,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="max-w-[880px] mx-auto px-6 md:px-16 lg:px-24 py-8 md:py-12">
-        <FadeIn delay={0.5}>
-          <small className="block text-center text-sm opacity-50">
-            © 2025 Voro Lab — Bay Area. Real content. Real presence.
-          </small>
-        </FadeIn>
-      </footer>
+      <Footer navDelay={0.5} copyrightDelay={0.6} />
     </main>
   );
 }

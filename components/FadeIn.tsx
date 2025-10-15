@@ -7,14 +7,21 @@ interface FadeInProps {
   children: ReactNode;
   delay?: number;
   className?: string;
+  immediate?: boolean;
 }
 
-export function FadeIn({ children, delay = 0, className = "" }: FadeInProps) {
+export function FadeIn({
+  children,
+  delay = 0,
+  className = "",
+  immediate = false,
+}: FadeInProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
+      animate={immediate ? { opacity: 1, y: 0 } : undefined}
+      whileInView={immediate ? undefined : { opacity: 1, y: 0 }}
+      viewport={immediate ? undefined : { once: true, amount: 0.2 }}
       transition={{
         duration: 0.42,
         delay,
