@@ -56,17 +56,28 @@ export default function Home() {
       {/* CTA Section */}
       <section className="max-w-[880px] mx-auto px-6 md:px-16 lg:px-24 py-16 md:py-24 text-center">
         <FadeIn delay={0.4}>
-          <p className="text-[17px] md:text-[18px] leading-relaxed mb-6">
+          <p className="text-[17px] md:text-[18px] leading-relaxed mb-8">
             Let&apos;s create something real together.
           </p>
-          <a
-            href="https://instagram.com/voro.lab"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block text-[20px] md:text-[22px] font-bold text-soft-white hover:text-pure-white transition-colors duration-200"
-          >
-            @voro.lab
-          </a>
+          <div className="space-y-6">
+            <div>
+              <a
+                href="/offer"
+                className="inline-block bg-soft-white text-soft-black px-8 py-4 rounded-lg text-[18px] md:text-[20px] font-bold hover:bg-pure-white transition-colors duration-200"
+              >
+                Get No-Cost Social Media Content
+              </a>
+            </div>
+            <div className="text-sm opacity-70">or connect with me</div>
+            <a
+              href="https://instagram.com/voro.lab"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-[20px] md:text-[22px] font-bold text-soft-white hover:text-pure-white transition-colors duration-200"
+            >
+              @voro.lab
+            </a>
+          </div>
         </FadeIn>
       </section>
 
