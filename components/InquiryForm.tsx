@@ -291,7 +291,7 @@ export function InquiryForm() {
                   Thank you! Your inquiry has been sent successfully.
                 </p>
                 <p className="text-soft-white text-sm mt-2 opacity-70">
-                  We'll get back to you within 24 hours.
+                  We&apos;ll get back to you within 24 hours.
                 </p>
               </div>
             </FadeIn>

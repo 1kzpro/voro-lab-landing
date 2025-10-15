@@ -12,7 +12,7 @@ export default function InquiryPage() {
             Get In Touch
           </h1>
           <p className="font-inter font-normal text-[clamp(16px,2.4vw,24px)] tracking-[0.02em] mb-8">
-            Let's create something real together.
+            Let&apos;s create something real together.
           </p>
         </FadeIn>
       </section>
